@@ -8,6 +8,9 @@ on:
 jobs:
   create-release:
     runs-on: ubuntu-latest
+    permissions:
+      contents: write
+      repository-projects: write
     
     steps:
       - name: Checkout code
@@ -64,48 +67,15 @@ jobs:
           zip -r SW2_RandomSkills.zip SW2_RandomSkills
           ls -lh SW2_RandomSkills.zip
       
-      - name: Read release information
-        id: read_release
+      - name: Create Release with GitHub CLI
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: |
           TITLE=$(cat release_title.txt)
           DESCRIPTION=$(cat release_description.txt)
+          VERSION="${{ steps.tag.outputs.version }}"
           
-          # Escape for JSON
-          TITLE_JSON=$(echo "$TITLE" | jq -Rs .)
-          DESCRIPTION_JSON=$(echo "$DESCRIPTION" | jq -Rs .)
-          
-          echo "title=$TITLE_JSON" >> $GITHUB_OUTPUT
-          echo "description=$DESCRIPTION_JSON" >> $GITHUB_OUTPUT
-      
-      - name: Create Release
-        uses: actions/create-release@v1
-        env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-        with:
-          tag_name: ${{ steps.tag.outputs.version }}
-          release_name: ${{ fromJson(steps.read_release.outputs.title) }}
-          body: ${{ fromJson(steps.read_release.outputs.description) }}
-          draft: false
-          prerelease: false
-      
-      - name: Get Release ID
-        id: get_release
-        uses: actions/github-script@v7
-        with:
-          script: |
-            const release = await github.rest.repos.getReleaseByTag({
-              owner: context.repo.owner,
-              repo: context.repo.repo,
-              tag: '${{ steps.tag.outputs.version }}'
-            });
-            return release.data.id;
-      
-      - name: Upload artifact to release
-        uses: actions/upload-release-asset@v1
-        env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-        with:
-          upload_url: ${{ github.event.release.upload_url }}
-          asset_path: artifacts/SW2_RandomSkills.zip
-          asset_name: SW2_RandomSkills.zip
-          asset_content_type: application/zip
+          gh release create "$VERSION" \
+            --title "$TITLE" \
+            --notes "$DESCRIPTION" \
+            artifacts/SW2_RandomSkills.zip
