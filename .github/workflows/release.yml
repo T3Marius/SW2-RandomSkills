@@ -1,0 +1,111 @@
+name: Create Release
+
+on:
+  push:
+    tags:
+      - 'v*'
+
+jobs:
+  create-release:
+    runs-on: ubuntu-latest
+    
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+      
+      - name: Get tag name
+        id: tag
+        run: echo "version=${GITHUB_REF#refs/tags/}" >> $GITHUB_OUTPUT
+      
+      - name: Check if first release
+        id: first_release
+        run: |
+          if [ "${{ steps.tag.outputs.version }}" = "v1.0.0" ]; then
+            echo "is_first=true" >> $GITHUB_OUTPUT
+          else
+            echo "is_first=false" >> $GITHUB_OUTPUT
+          fi
+      
+      - name: Generate release notes
+        id: release_notes
+        run: |
+          VERSION="${{ steps.tag.outputs.version }}"
+          IS_FIRST="${{ steps.first_release.outputs.is_first }}"
+          
+          if [ "$IS_FIRST" = "true" ]; then
+            TITLE="First Release"
+            DESCRIPTION="- Initial Release"
+          else
+            TITLE="SW2-RandomSkill $VERSION"
+            # Get commits between v1.0.0 and current tag
+            DESCRIPTION=$(git log v1.0.0..$VERSION --pretty=format:"- %s" | sort -u)
+          fi
+          
+          # Write to file to handle multiline output
+          echo "$TITLE" > release_title.txt
+          echo "$DESCRIPTION" > release_description.txt
+      
+      - name: Setup .NET
+        uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: '10.0.x'
+      
+      - name: Build project
+        run: dotnet build --configuration Release
+      
+      - name: Prepare artifact
+        run: |
+          # Create directory with renamed folder
+          mkdir -p artifacts
+          cp -r build/net10.0 artifacts/SW2_RandomSkills
+          cd artifacts
+          zip -r SW2_RandomSkills.zip SW2_RandomSkills
+          ls -lh SW2_RandomSkills.zip
+      
+      - name: Read release information
+        id: read_release
+        run: |
+          TITLE=$(cat release_title.txt)
+          DESCRIPTION=$(cat release_description.txt)
+          
+          # Escape for JSON
+          TITLE_JSON=$(echo "$TITLE" | jq -Rs .)
+          DESCRIPTION_JSON=$(echo "$DESCRIPTION" | jq -Rs .)
+          
+          echo "title=$TITLE_JSON" >> $GITHUB_OUTPUT
+          echo "description=$DESCRIPTION_JSON" >> $GITHUB_OUTPUT
+      
+      - name: Create Release
+        uses: actions/create-release@v1
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        with:
+          tag_name: ${{ steps.tag.outputs.version }}
+          release_name: ${{ fromJson(steps.read_release.outputs.title) }}
+          body: ${{ fromJson(steps.read_release.outputs.description) }}
+          draft: false
+          prerelease: false
+      
+      - name: Get Release ID
+        id: get_release
+        uses: actions/github-script@v7
+        with:
+          script: |
+            const release = await github.rest.repos.getReleaseByTag({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              tag: '${{ steps.tag.outputs.version }}'
+            });
+            return release.data.id;
+      
+      - name: Upload artifact to release
+        uses: actions/upload-release-asset@v1
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        with:
+          upload_url: ${{ github.event.release.upload_url }}
+          asset_path: artifacts/SW2_RandomSkills.zip
+          asset_name: SW2_RandomSkills.zip
+          asset_content_type: application/zip
