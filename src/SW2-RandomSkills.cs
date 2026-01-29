@@ -34,10 +34,10 @@ public sealed class SW2_RandomSkills(ISwiftlyCore core) : BasePlugin(core)
     private class RollConfig
     {
         public int SkillsToShow { get; set; } = 3;
-        public float InitialSpeed { get; set; } = 0.1f;
-        public float SlowdownRate { get; set; } = 0.8f;
-        public float MinSpeed { get; set; } = 0.5f;
-        public int TotalRolls { get; set; } = 15;
+        public float InitialSpeed { get; set; } = 0.05f;
+        public float SlowdownRate { get; set; } = 0.75f;
+        public float MinSpeed { get; set; } = 0.2f;
+        public int TotalRolls { get; set; } = 12;
     }
 
     public override void Load(bool hotReload)
@@ -533,13 +533,4 @@ public class PlayerRollData
 public interface IActivatableSkill
 {
     void OnActivate(IPlayer player);
-}
-
-public class RollConfig
-{
-    public int SkillsToShow { get; set; } = 3;
-    public float InitialSpeed { get; set; } = 0.05f;
-    public float SlowdownRate { get; set; } = 0.75f;
-    public float MinSpeed { get; set; } = 0.2f;
-    public int TotalRolls { get; set; } = 12;
 }
