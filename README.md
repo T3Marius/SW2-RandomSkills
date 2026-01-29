@@ -5,11 +5,12 @@
 </div>
 
 <p align="center">
-  <img src="https://img.shields.io/badge/build-passing-brightgreen" alt="Build Status">
-  <img src="https://img.shields.io/github/downloads/T3Marius/SW2_RandomSkills/total" alt="Downloads">
-  <img src="https://img.shields.io/github/stars/T3Marius/SW2_RandomSkills?style=flat&logo=github" alt="Stars">
-  <img src="https://img.shields.io/github/license/T3Marius/SW2_RandomSkills" alt="License">
-</p
+  <img src="https://img.shields.io/github/actions/workflow/status/T3Marius/SW2-RandomSkills/release.yml" alt="Build Status">
+  <img src="https://img.shields.io/github/downloads/T3Marius/SW2-RandomSkills/total" alt="Downloads">
+  <img src="https://img.shields.io/github/stars/T3Marius/SW2-RandomSkills?style=flat&logo=github" alt="Stars">
+  <img src="https://img.shields.io/github/license/T3Marius/SW2-RandomSkills" alt="License">
+  <img src="https://img.shields.io/github/v/release/T3Marius/SW2-RandomSkills" alt="Latest Release">
+</p>
 
 # Creating A Skill
 - In order to create a new skill, do this:
