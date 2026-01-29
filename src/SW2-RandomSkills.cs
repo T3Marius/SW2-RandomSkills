@@ -14,7 +14,7 @@ using Microsoft.Extensions.Logging;
 
 namespace SW2_RandomSkills;
 
-[PluginMetadata(Id = "SW2_RandomSkills", Version = "2.0.0", Name = "SW2-RandomSkills", Author = "T3Marius", Description = "Random skills with roll animation")]
+[PluginMetadata(Id = "SW2_RandomSkills", Version = "1.0.2", Name = "SW2-RandomSkills", Author = "T3Marius", Description = "Random skills with roll animation")]
 public sealed class SW2_RandomSkills(ISwiftlyCore core) : BasePlugin(core)
 {
     private ServiceProvider? _provider;
@@ -30,15 +30,6 @@ public sealed class SW2_RandomSkills(ISwiftlyCore core) : BasePlugin(core)
 
     private ILocalizer? _localizer;
     private readonly Random _random = new();
-
-    private class RollConfig
-    {
-        public int SkillsToShow { get; set; } = 3;
-        public float InitialSpeed { get; set; } = 0.05f;
-        public float SlowdownRate { get; set; } = 0.75f;
-        public float MinSpeed { get; set; } = 0.2f;
-        public int TotalRolls { get; set; } = 12;
-    }
 
     public override void Load(bool hotReload)
     {

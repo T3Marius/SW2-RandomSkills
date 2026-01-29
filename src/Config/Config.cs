@@ -9,6 +9,7 @@ namespace SW2_RandomSkills;
 public sealed class SkillsConfig
 {
     public bool EnableSkillMessages { get; set; } = true;
+    public RollConfig RollSettings { get; set; } = new();
     public SoundsConfig Sounds { get; set; } = new();
     [ConfigurationKeyName("Skills")]
     public Dictionary<string, SkillConfig>? SkillsRaw { get; set; }
@@ -45,7 +46,14 @@ public class SkillConfig
     public string ActivationKey { get; set; } = "";
     public Dictionary<string, object> Parameters { get; set; } = new();
 }
-
+public class RollConfig
+{
+    public int SkillsToShow { get; set; } = 3;
+    public float InitialSpeed { get; set; } = 0.05f;
+    public float SlowdownRate { get; set; } = 0.75f;
+    public float MinSpeed { get; set; } = 0.2f;
+    public int TotalRolls { get; set; } = 25;
+}
 public enum SkillType
 {
     None,
