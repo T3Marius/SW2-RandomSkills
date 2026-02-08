@@ -26,21 +26,52 @@ jobs:
         id: release_notes
         run: |
           VERSION="${{ steps.tag.outputs.version }}"
+          REPO_URL="${GITHUB_SERVER_URL}/${GITHUB_REPOSITORY}"
 
-          # Find the previous tag reachable from the current tag's parent commit.
-          # If none exists, treat this as the first release.
           if PREVIOUS_TAG=$(git describe --tags --abbrev=0 "${VERSION}^" 2>/dev/null); then
             TITLE="SW2-RandomSkill $VERSION"
-            DESCRIPTION=$(git log "${PREVIOUS_TAG}..${VERSION}" --pretty=format:"- %s")
-
-            if [ -z "$DESCRIPTION" ]; then
-              DESCRIPTION="- No commits found between ${PREVIOUS_TAG} and ${VERSION}."
-            fi
+            COMMIT_RANGE="${PREVIOUS_TAG}..${VERSION}"
           else
             TITLE="SW2-RandomSkill $VERSION"
-            DESCRIPTION="- Initial Release"
+            COMMIT_RANGE="${VERSION}"
           fi
-          
+
+          DESCRIPTION=""
+          while IFS=$'\t' read -r COMMIT_SHA COMMIT_SUBJECT; do
+            [ -z "$COMMIT_SHA" ] && continue
+
+            SHORT_SHA="${COMMIT_SHA:0:7}"
+            COMMIT_URL="${REPO_URL}/commit/${COMMIT_SHA}"
+            FILE_LINKS=""
+
+            while IFS= read -r FILE_PATH; do
+              [ -z "$FILE_PATH" ] && continue
+              FILE_URL="${REPO_URL}/blob/${COMMIT_SHA}/${FILE_PATH}"
+              FILE_MD_LINK="[\`${FILE_PATH}\`](${FILE_URL})"
+
+              if [ -z "$FILE_LINKS" ]; then
+                FILE_LINKS="$FILE_MD_LINK"
+              else
+                FILE_LINKS="${FILE_LINKS}, ${FILE_MD_LINK}"
+              fi
+            done < <(git show --pretty="" --name-only --diff-filter=AMR "$COMMIT_SHA")
+
+            LINE="- ${COMMIT_SUBJECT} ([\`${SHORT_SHA}\`](${COMMIT_URL}))"
+            if [ -n "$FILE_LINKS" ]; then
+              LINE="${LINE} - ${FILE_LINKS}"
+            fi
+
+            if [ -z "$DESCRIPTION" ]; then
+              DESCRIPTION="$LINE"
+            else
+              DESCRIPTION="${DESCRIPTION}"$'\n'"${LINE}"
+            fi
+          done < <(git log "${COMMIT_RANGE}" --pretty=format:'%H%x09%s')
+
+          if [ -z "$DESCRIPTION" ]; then
+            DESCRIPTION="- No commits found in ${COMMIT_RANGE}."
+          fi
+
           # Write to file to handle multiline output
           echo "$TITLE" > release_title.txt
           echo "$DESCRIPTION" > release_description.txt
