@@ -22,28 +22,23 @@ jobs:
         id: tag
         run: echo "version=${GITHUB_REF#refs/tags/}" >> $GITHUB_OUTPUT
       
-      - name: Check if first release
-        id: first_release
-        run: |
-          if [ "${{ steps.tag.outputs.version }}" = "v1.0.0" ]; then
-            echo "is_first=true" >> $GITHUB_OUTPUT
-          else
-            echo "is_first=false" >> $GITHUB_OUTPUT
-          fi
-      
       - name: Generate release notes
         id: release_notes
         run: |
           VERSION="${{ steps.tag.outputs.version }}"
-          IS_FIRST="${{ steps.first_release.outputs.is_first }}"
-          
-          if [ "$IS_FIRST" = "true" ]; then
-            TITLE="First Release"
-            DESCRIPTION="- Initial Release"
+
+          # Find the previous tag reachable from the current tag's parent commit.
+          # If none exists, treat this as the first release.
+          if PREVIOUS_TAG=$(git describe --tags --abbrev=0 "${VERSION}^" 2>/dev/null); then
+            TITLE="SW2-RandomSkill $VERSION"
+            DESCRIPTION=$(git log "${PREVIOUS_TAG}..${VERSION}" --pretty=format:"- %s")
+
+            if [ -z "$DESCRIPTION" ]; then
+              DESCRIPTION="- No commits found between ${PREVIOUS_TAG} and ${VERSION}."
+            fi
           else
             TITLE="SW2-RandomSkill $VERSION"
-            # Get commits between v1.0.0 and current tag
-            DESCRIPTION=$(git log v1.0.0..$VERSION --pretty=format:"- %s" | sort -u)
+            DESCRIPTION="- Initial Release"
           fi
           
           # Write to file to handle multiline output
