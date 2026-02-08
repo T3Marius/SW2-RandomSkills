@@ -1,8 +1,5 @@
 using System.Text.Json.Serialization;
 using Microsoft.Extensions.Configuration;
-using Microsoft.Extensions.Configuration.Binder;
-using SwiftlyS2.Shared.Events;
-using SwiftlyS2.Shared.SchemaDefinitions;
 
 namespace SW2_RandomSkills;
 
@@ -64,5 +61,6 @@ public enum SkillType
     Shield,
     SwapPosition,
     Jetpack,
-    Teleport
+    Teleport,
+    Noclip
 }

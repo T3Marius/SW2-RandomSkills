@@ -14,7 +14,7 @@ using Microsoft.Extensions.Logging;
 
 namespace SW2_RandomSkills;
 
-[PluginMetadata(Id = "SW2_RandomSkills", Version = "1.0.2", Name = "SW2-RandomSkills", Author = "T3Marius", Description = "Random skills with roll animation")]
+[PluginMetadata(Id = "SW2_RandomSkills", Version = "1.0.3", Name = "SW2-RandomSkills", Author = "T3Marius", Description = "Random skills with roll animation")]
 public sealed class SW2_RandomSkills(ISwiftlyCore core) : BasePlugin(core)
 {
     private ServiceProvider? _provider;
@@ -73,6 +73,8 @@ public sealed class SW2_RandomSkills(ISwiftlyCore core) : BasePlugin(core)
         _skillManager.RegisterSkill(new RandomHealthSkill(_localizer, Core));
         _skillManager.RegisterSkill(new TeleportSkill(_localizer, Core));
         _skillManager.RegisterSkill(new TankSkill(_localizer, Core));
+        _skillManager.RegisterSkill(new NoclipSkill(_localizer, Core));
+        _skillManager.RegisterSkill(new JetpackSkill(_localizer, Core));
     }
 
     private HookResult OnPlayerDisconnect(EventPlayerDisconnect e)
